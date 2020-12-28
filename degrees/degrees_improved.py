@@ -115,16 +115,6 @@ def shortest_path(source, target):
         node = frontier.remove() # remove last node in stack frontier
         num_explored += 1
 
-        # Check if node is goal, then we have a solution
-        if node.state == target:
-            solution = list()
-            while node.parent is not None: # Tracing back
-                solution.append((node.action, node.state))
-                node = node.parent 
-
-            solution.reverse() # Reverse order
-            return solution
-
         # Mark node as explored
         explored.add(node.state)
 
@@ -132,7 +122,20 @@ def shortest_path(source, target):
         for action, state in neighbors_for_person(node.state):
             if state not in explored and not frontier.contains_state(state):
                 child = Node(state=state, parent=node, action=action)
-                frontier.add(child)
+
+                # Check if child node is goal, then we have a solution
+                if child.state == target:
+                    solution = list()
+                    solution.append((child.action, child.state))
+
+                    while node.parent is not None: # Tracing back
+                        solution.append((node.action, node.state))
+                        node = node.parent 
+
+                    solution.reverse() # Reverse order
+                    return solution
+
+                frontier.add(child) # Else, add child node to frontier
 
 
 def person_id_for_name(name):
