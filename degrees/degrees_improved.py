@@ -1,5 +1,6 @@
 import csv
 import sys
+import time
 
 from util import Node, StackFrontier, QueueFrontier
 
@@ -69,7 +70,7 @@ def main():
     if target is None:
         sys.exit("Person not found.")
 
-    path = shortest_path(source, target)
+    path, time_lapsed = shortest_path(source, target)
 
     if path is None:
         print("Not connected.")
@@ -82,6 +83,7 @@ def main():
             person2 = people[path[i + 1][1]]["name"]
             movie = movies[path[i + 1][0]]["title"]
             print(f"{i + 1}: {person1} and {person2} starred in {movie}")
+        print(f"Time to execute: {time_lapsed} sec")
 
 
 def shortest_path(source, target):
@@ -102,7 +104,11 @@ def shortest_path(source, target):
     frontier.add(start)
 
     # Initalize an empty explored set
-    explored = set()
+    movies_explored = set()
+    people_explored = set()
+
+    # Start timer
+    start_time = time.time()
 
     # Loop until solution found
     while True:
@@ -116,11 +122,12 @@ def shortest_path(source, target):
         num_explored += 1
 
         # Mark node as explored
-        explored.add(node.state)
+        people_explored.add(node.state)
+        movies_explored.add(node.action)
 
         # Add neighbors to frontier (Expand node) action = movies_id, state = person_id
         for action, state in neighbors_for_person(node.state):
-            if state not in explored and not frontier.contains_state(state):
+            if state not in people_explored and action not in movies_explored: # instead of frontier.contains_state which is a big FOR loop (long time)
                 child = Node(state=state, parent=node, action=action)
 
                 # Check if child node is goal, then we have a solution
@@ -133,7 +140,9 @@ def shortest_path(source, target):
                         node = node.parent 
 
                     solution.reverse() # Reverse order
-                    return solution
+                    stop_time = time.time()
+                    time_lapsed = stop_time - start_time
+                    return solution, time_lapsed
 
                 frontier.add(child) # Else, add child node to frontier
 
